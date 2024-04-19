@@ -42,7 +42,7 @@ public class VoucherRepositoryTest {
         assertEquals(voucher.getCode(), result.getCode());
         assertEquals(voucher.getDiscount(), result.getDiscount());
         assertEquals(voucher.getTermsConditions(), result.getTermsConditions());
-        assertTrue(voucherRepository.count() == 1);
+        assertEquals(1, voucherRepository.count());
     }
 
     @Test
@@ -57,7 +57,7 @@ public class VoucherRepositoryTest {
         assertEquals(newVoucher.getCode(), result.getCode());
         assertEquals(newVoucher.getDiscount(), result.getDiscount());
         assertEquals(newVoucher.getTermsConditions(), result.getTermsConditions());
-        assertTrue(voucherRepository.count() == 1);
+        assertEquals(1, voucherRepository.count());
     }
 
     @Test
@@ -70,7 +70,7 @@ public class VoucherRepositoryTest {
         Voucher result = voucherRepository.findByCode(newVoucher.getCode());
         assertNull(retEdit);
         assertNull(result);
-        assertTrue(voucherRepository.count() == 1);
+        assertEquals(1, voucherRepository.count());
     }
 
     @Test
@@ -80,7 +80,7 @@ public class VoucherRepositoryTest {
         Voucher retDel = voucherRepository.delete(voucher);
 
         assertNotNull(retDel);
-        assertTrue(voucherRepository.count() == 0);
+        assertEquals(0, voucherRepository.count());
     }
 
     @Test
@@ -91,7 +91,7 @@ public class VoucherRepositoryTest {
         Voucher retDel = voucherRepository.delete(voucher2);
 
         assertNull(retDel);
-        assertTrue(voucherRepository.count() == 1);
+        assertEquals(1, voucherRepository.count());
     }
 
     @Test
