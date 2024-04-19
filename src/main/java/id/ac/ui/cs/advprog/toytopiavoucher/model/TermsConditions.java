@@ -8,6 +8,10 @@ public class TermsConditions {
     private double minimumPurchase;
     private PaymentMethod paymentMethod;
 
+    public TermsConditions() {
+        this(0.0, PaymentMethod.ANY);
+    }
+
     public TermsConditions(double minimumPurchase, PaymentMethod paymentMethod) {
         if (minimumPurchase < 0 || paymentMethod == null) {
             throw new IllegalArgumentException();
