@@ -38,4 +38,13 @@ public class TermsConditionsTest {
         assertThrows(IllegalArgumentException.class,
                 () -> new TermsConditions(minPrice, null));
     }
+
+    @Test
+    void testEquals() {
+        double minPrice = 100_000.0;
+        PaymentMethod method = PaymentMethod.CREDIT_CARD;
+        TermsConditions tc1 = new TermsConditions(minPrice, method);
+        TermsConditions tc2 = new TermsConditions(minPrice, method);
+        assertEquals(tc1, tc2);
+    }
 }
