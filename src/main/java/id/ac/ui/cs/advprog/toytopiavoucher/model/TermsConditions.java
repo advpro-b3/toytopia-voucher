@@ -19,4 +19,13 @@ public class TermsConditions {
         this.minimumPurchase = minimumPurchase;
         this.paymentMethod = paymentMethod;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof TermsConditions tc)) {
+            return false;
+        } else {
+            return this.minimumPurchase == tc.minimumPurchase && this.paymentMethod == tc.paymentMethod;
+        }
+    }
 }
