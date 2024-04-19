@@ -14,4 +14,28 @@ public class TermsConditionsTest {
         assertEquals(minPrice, tc.getMinimumPurchase());
         assertEquals(method, tc.getPaymentMethod());
     }
+
+    @Test
+    void testCreateWithNoMinPurchase() {
+        double minPrice = 0.0;
+        PaymentMethod method = PaymentMethod.CREDIT_CARD;
+        TermsConditions tc = new TermsConditions(minPrice, method);
+        assertEquals(minPrice, tc.getMinimumPurchase());
+        assertEquals(method, tc.getPaymentMethod());
+    }
+
+    @Test
+    void testCreateWithNegativePrice() {
+        double minPrice = -1.0;
+        PaymentMethod method = PaymentMethod.CREDIT_CARD;
+        assertThrows(IllegalArgumentException.class,
+                () -> new TermsConditions(minPrice, method));
+    }
+
+    @Test
+    void testCreateWithNullPaymentMethod() {
+        double minPrice = 100_000.0;
+        assertThrows(IllegalArgumentException.class,
+                () -> new TermsConditions(minPrice, null));
+    }
 }
