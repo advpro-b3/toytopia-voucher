@@ -6,6 +6,7 @@ import id.ac.ui.cs.advprog.toytopiavoucher.model.Voucher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -17,6 +18,7 @@ public class VoucherRepositoryTest {
     @BeforeEach
     void setUp() {
         voucherRepository = new VoucherRepository();
+        vouchers = new ArrayList<>();
 
         vouchers.add(new Voucher("c0de-1", 0.25,
                 new TermsConditions(50.0, PaymentMethod.CREDIT_CARD)));
