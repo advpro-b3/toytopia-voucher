@@ -18,26 +18,29 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public Voucher create(Voucher voucher) {
+        if (voucherRepository.findByCode(voucher.getCode()) == null) {
+            return voucherRepository.create(voucher);
+        }
         return null;
     }
 
     @Override
     public Voucher edit(Voucher voucher) {
-        return null;
+        return voucherRepository.edit(voucher);
     }
 
     @Override
     public Voucher delete(Voucher voucher) {
-        return null;
+        return voucherRepository.delete(voucher);
     }
 
     @Override
     public Voucher findByCode(String code) {
-        return null;
+        return voucherRepository.findByCode(code);
     }
 
     @Override
     public List<Voucher> findAll() {
-        return null;
+        return voucherRepository.findAll();
     }
 }
