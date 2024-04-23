@@ -6,6 +6,10 @@ import id.ac.ui.cs.advprog.toytopiavoucher.model.TermsConditions;
 public class TermsConditionsBuilder {
     private TermsConditions termsConditions;
 
+    public TermsConditionsBuilder(TermsConditions termsConditions) {
+        this.termsConditions = termsConditions;
+    }
+
     public TermsConditionsBuilder() {
         this.reset();
     }
