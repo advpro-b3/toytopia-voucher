@@ -2,8 +2,10 @@ package id.ac.ui.cs.advprog.toytopiavoucher.model;
 
 import id.ac.ui.cs.advprog.toytopiavoucher.enums.PaymentMethod;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter
 public class TermsConditions {
     private double minimumPurchase;
     private PaymentMethod paymentMethod;
