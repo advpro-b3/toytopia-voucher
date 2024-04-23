@@ -55,10 +55,11 @@ public class VoucherController {
 
     @PutMapping("/edit")
     public ResponseEntity<Voucher> edit(@RequestBody Map<String, Object> body) {
-        VoucherFactory factory = new VoucherFactory();
-        Voucher voucher = factory.create(body);
-        Voucher edited = voucherService.edit(voucher);
-        if (edited != null) {
+        Voucher voucher = voucherService.findByCode((String)body.get("code"));
+        if (voucher != null) {
+            VoucherFactory factory = new VoucherFactory();
+            Voucher newVoucher = factory.edit(body, voucher);
+            Voucher edited = voucherService.edit(newVoucher);
             return ResponseEntity.ok(edited);
         } else {
             return ResponseEntity.notFound().build();
