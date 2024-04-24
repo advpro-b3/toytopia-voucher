@@ -111,6 +111,10 @@ jobs:
 
       - name: update permission
         run: chmod 400 ssh-key.pem
+
+      - name: install docker
+        run: sudo apt install docker.io
+
       - name: Deploy to GCP
         run: |
           ssh -o StrictHostKeyChecking=no -i ssh-key.pem ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_STATIC_IP }} "
