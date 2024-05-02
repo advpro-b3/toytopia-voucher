@@ -6,10 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class VoucherServiceImpl implements VoucherService {
-    private VoucherRepository voucherRepository;
+    private final VoucherRepository voucherRepository;
 
     @Autowired
     public VoucherServiceImpl(VoucherRepository voucherRepository) {
@@ -18,25 +20,37 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public Voucher create(Voucher voucher) {
-        if (voucherRepository.findByCode(voucher.getCode()) == null) {
-            return voucherRepository.create(voucher);
+        return voucherRepository.save(voucher);
+    }
+
+    @Override
+    public Voucher edit(Voucher voucher) {
+        return voucherRepository.save(voucher);
+    }
+
+    @Override
+    public Voucher delete(Voucher voucher) {
+        Optional<Voucher> found = voucherRepository.findById(voucher.getCode());
+        if (found.isPresent()) {
+            voucherRepository.delete(voucher);
+            return found.get();
         }
         return null;
     }
 
     @Override
-    public Voucher edit(Voucher voucher) {
-        return voucherRepository.edit(voucher);
+    public Voucher deleteByCode(UUID code) {
+        Optional<Voucher> found = voucherRepository.findById(code);
+        if (found.isPresent()) {
+            voucherRepository.deleteById(code);
+            return found.get();
+        }
+        return null;
     }
 
     @Override
-    public Voucher delete(Voucher voucher) {
-        return voucherRepository.delete(voucher);
-    }
-
-    @Override
-    public Voucher findByCode(String code) {
-        return voucherRepository.findByCode(code);
+    public Voucher findByCode(UUID code) {
+        return voucherRepository.findById(code).orElse(null);
     }
 
     @Override
