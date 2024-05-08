@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.toytopiavoucher.service;
 
+import id.ac.ui.cs.advprog.toytopiavoucher.builder.VoucherBuilder;
 import id.ac.ui.cs.advprog.toytopiavoucher.enums.PaymentMethod;
 import id.ac.ui.cs.advprog.toytopiavoucher.model.Voucher;
 import id.ac.ui.cs.advprog.toytopiavoucher.repository.VoucherRepository;
@@ -12,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -28,83 +30,90 @@ public class VoucherServiceImplTest {
     void setUp() {
         vouchers = new ArrayList<>();
 
-        vouchers.add(new Voucher("c0de-1", 0.25,
-                new TermsConditions(50.0, PaymentMethod.CREDIT_CARD)));
+        VoucherBuilder builder = new VoucherBuilder();
 
-        vouchers.add(new Voucher("c0de-2", 0.50,
-                new TermsConditions(20.0, PaymentMethod.BANK_TRANSFER)));
+        builder.setDiscount(0.25)
+                .setMinPurchase(50.0)
+                .setPaymentMethod(PaymentMethod.CREDIT_CARD.toString());
+        vouchers.add(builder.build());
 
-        vouchers.add(new Voucher("c0de-3", 0.40, new TermsConditions()));
+        builder.setDiscount(0.50)
+                .setMinPurchase(20.0)
+                .setPaymentMethod(PaymentMethod.BANK_TRANSFER.toString());
+        vouchers.add(builder.build());
 
-        vouchers.add(new Voucher("c0de-3", 0.50,
-                new TermsConditions(100.0, PaymentMethod.ANY)));
+        builder.setDiscount(0.40);
+        vouchers.add(builder.build());
+
+        builder.setDiscount(0.50)
+                .setMinPurchase(100.0)
+                .setPaymentMethod(PaymentMethod.ANY.toString());
+        vouchers.add(builder.build());
     }
 
     @Test
     void testCreateVoucher() {
         Voucher voucher = vouchers.getFirst();
-        doReturn(voucher).when(voucherRepository).create(voucher);
+        doReturn(voucher).when(voucherRepository).save(voucher);
 
         Voucher created = voucherService.create(voucher);
-        verify(voucherRepository, times(1)).create(voucher);
+        verify(voucherRepository, times(1)).save(voucher);
         assertEquals(voucher.getCode(), created.getCode());
-        assertEquals(voucher.getDiscount(), created.getDiscount());
-        assertEquals(voucher.getTermsConditions(), created.getTermsConditions());
     }
 
     @Test
     void testCreateExistingVoucher() {
         Voucher voucher = vouchers.getFirst();
-        doReturn(voucher).when(voucherRepository).findByCode(voucher.getCode());
+        doReturn(true).when(voucherRepository).existsById(voucher.getCode());
 
         Voucher created = voucherService.create(voucher);
-        verify(voucherRepository, times(0)).create(any(Voucher.class));
-        verify(voucherRepository, times(1)).findByCode(voucher.getCode());
+        verify(voucherRepository, times(0)).save(any(Voucher.class));
         assertNull(created);
     }
 
     @Test
     void testUpdateVoucher() {
         Voucher voucher = vouchers.getFirst();
-        doReturn(voucher).when(voucherRepository).edit(voucher);
+        doReturn(voucher).when(voucherRepository).save(voucher);
 
         Voucher edited = voucherService.edit(voucher);
-        verify(voucherRepository, times(1)).edit(any(Voucher.class));
+        verify(voucherRepository, times(1)).save(any(Voucher.class));
     }
 
     @Test
     void testUpdateNonExistentVoucher() {
         Voucher voucher = vouchers.getFirst();
-        doReturn(null).when(voucherRepository).edit(voucher);
+        doReturn(null).when(voucherRepository).save(voucher);
 
         Voucher edited = voucherService.edit(voucher);
-        verify(voucherRepository, times(1)).edit(any(Voucher.class));
+        verify(voucherRepository, times(1)).save(any(Voucher.class));
         assertNull(edited);
     }
 
     @Test
     void testDeleteVoucher() {
         Voucher voucher = vouchers.getFirst();
-        doReturn(voucher).when(voucherRepository).delete(voucher);
+        doReturn(Optional.of(voucher)).when(voucherRepository).findById(voucher.getCode());
 
         Voucher deleted = voucherService.delete(voucher);
         verify(voucherRepository, times(1)).delete(any(Voucher.class));
+        assertEquals(voucher.getDiscount(), deleted.getDiscount());
     }
 
     @Test
     void testDeleteNonExistentVoucher() {
         Voucher voucher = vouchers.getFirst();
-        doReturn(null).when(voucherRepository).delete(voucher);
+        doReturn(Optional.empty()).when(voucherRepository).findById(voucher.getCode());
 
         Voucher deleted = voucherService.delete(voucher);
-        verify(voucherRepository, times(1)).delete(any(Voucher.class));
+        verify(voucherRepository, times(0)).delete(any(Voucher.class));
         assertNull(deleted);
     }
 
     @Test
     void testFindByCode() {
         Voucher voucher = vouchers.getFirst();
-        doReturn(voucher).when(voucherRepository).findByCode(voucher.getCode());
+        doReturn(Optional.of(voucher)).when(voucherRepository).findById(voucher.getCode());
 
         Voucher found = voucherService.findByCode(voucher.getCode());
         assertEquals(voucher.getCode(), found.getCode());
@@ -113,7 +122,7 @@ public class VoucherServiceImplTest {
     @Test
     void testNonExistentFindByCode() {
         Voucher voucher = vouchers.getFirst();
-        doReturn(null).when(voucherRepository).findByCode(voucher.getCode());
+        doReturn(Optional.empty()).when(voucherRepository).findById(voucher.getCode());
 
         Voucher found = voucherService.findByCode(voucher.getCode());
         assertNull(found);
