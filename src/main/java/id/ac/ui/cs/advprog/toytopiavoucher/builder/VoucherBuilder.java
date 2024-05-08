@@ -56,6 +56,10 @@ public class VoucherBuilder {
     }
 
     public Voucher build() {
+        if (this.voucher.getDiscount() == null) {
+            throw new IllegalArgumentException();
+        }
+        this.reset();
         return this.voucher;
     }
 }

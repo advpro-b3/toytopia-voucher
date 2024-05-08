@@ -19,14 +19,4 @@ public class ToytopiavoucherApplication {
     public static void main(String[] args) {
         SpringApplication.run(ToytopiavoucherApplication.class, args);
     }
-
-    @Bean
-    CommandLineRunner commandLineRunner(VoucherRepository voucherRepository) {
-        return args -> {
-            LocalDate date = LocalDate.now();
-            Voucher v = new Voucher(0.5, 50_000.0, 100_000., PaymentMethod.BANK_TRANSFER, date, date);
-            voucherRepository.save(v);
-        };
-    }
-
 }

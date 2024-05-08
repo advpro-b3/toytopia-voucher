@@ -20,6 +20,9 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public Voucher create(Voucher voucher) {
+        if (voucherRepository.existsById(voucher.getCode())) {
+            return null;
+        }
         return voucherRepository.save(voucher);
     }
 
