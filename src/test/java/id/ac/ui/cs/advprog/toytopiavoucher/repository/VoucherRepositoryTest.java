@@ -1,127 +1,94 @@
 package id.ac.ui.cs.advprog.toytopiavoucher.repository;
 
+import id.ac.ui.cs.advprog.toytopiavoucher.builder.VoucherBuilder;
 import id.ac.ui.cs.advprog.toytopiavoucher.enums.PaymentMethod;
 import id.ac.ui.cs.advprog.toytopiavoucher.model.Voucher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
+@DataJpaTest
 public class VoucherRepositoryTest {
+    @Autowired
     private VoucherRepository voucherRepository;
+    @Autowired
+    private TestEntityManager entityManager;
     private List<Voucher> vouchers;
 
     @BeforeEach
     void setUp() {
-        voucherRepository = new VoucherRepository();
         vouchers = new ArrayList<>();
 
-        vouchers.add(new Voucher("c0de-1", 0.25,
-                new TermsConditions(50.0, PaymentMethod.CREDIT_CARD)));
+        VoucherBuilder builder = new VoucherBuilder();
 
-        vouchers.add(new Voucher("c0de-2", 0.50,
-                new TermsConditions(20.0, PaymentMethod.BANK_TRANSFER)));
+        builder.setDiscount(0.25)
+                .setMinPurchase(50.0)
+                .setPaymentMethod(PaymentMethod.CREDIT_CARD.toString());
+        vouchers.add(builder.build());
 
-        vouchers.add(new Voucher("c0de-3", 0.40, new TermsConditions()));
+        builder.setDiscount(0.50)
+                .setMinPurchase(20.0)
+                .setPaymentMethod(PaymentMethod.BANK_TRANSFER.toString());
+        vouchers.add(builder.build());
 
-        vouchers.add(new Voucher("c0de-3", 0.50,
-                new TermsConditions(100.0, PaymentMethod.ANY)));
+        builder.setDiscount(0.40);
+        vouchers.add(builder.build());
+
+        builder.setDiscount(0.50)
+                .setMinPurchase(100.0)
+                .setPaymentMethod(PaymentMethod.ANY.toString());
+        vouchers.add(builder.build());
     }
 
     @Test
-    void testCreateVoucher() {
+    void testSaveVoucher() {
         Voucher voucher = vouchers.getFirst();
-        Voucher ret = voucherRepository.create(voucher);
+        Voucher inserted = voucherRepository.save(voucher);
+        Voucher retrieved = entityManager.find(Voucher.class, inserted.getCode());
 
-        Voucher result = voucherRepository.findByCode(voucher.getCode());
-        assertNotNull(ret);
+        assertNotNull(inserted);
+        assertEquals(voucher.getCode(), retrieved.getCode());
+        assertEquals(1, voucherRepository.count());
+    }
+
+    @Test
+    void testUpdateVoucher() {
+        Voucher voucher = vouchers.getFirst();
+        entityManager.persist(voucher);
+        voucher.setDiscount(0.9);
+        Voucher updated = voucherRepository.save(voucher);
+
+        Voucher result = entityManager.find(Voucher.class, updated.getCode());
+        assertNotNull(updated);
         assertEquals(voucher.getCode(), result.getCode());
         assertEquals(voucher.getDiscount(), result.getDiscount());
-        assertEquals(voucher.getTermsConditions(), result.getTermsConditions());
-        assertEquals(1, voucherRepository.count());
-    }
-
-    @Test
-    void testEditVoucher() {
-        Voucher oldVoucher = vouchers.get(2);
-        Voucher retCreate = voucherRepository.create(oldVoucher);
-        Voucher newVoucher = vouchers.get(3);
-        Voucher retEdit = voucherRepository.edit(newVoucher);
-
-        Voucher result = voucherRepository.findByCode(newVoucher.getCode());
-        assertNotNull(retEdit);
-        assertEquals(newVoucher.getCode(), result.getCode());
-        assertEquals(newVoucher.getDiscount(), result.getDiscount());
-        assertEquals(newVoucher.getTermsConditions(), result.getTermsConditions());
-        assertEquals(1, voucherRepository.count());
-    }
-
-    @Test
-    void testEditVoucherNotFound() {
-        Voucher oldVoucher = vouchers.get(2);
-        Voucher retCreate = voucherRepository.create(oldVoucher);
-        Voucher newVoucher = vouchers.get(1);
-        Voucher retEdit = voucherRepository.edit(newVoucher);
-
-        Voucher result = voucherRepository.findByCode(newVoucher.getCode());
-        assertNull(retEdit);
-        assertNull(result);
-        assertEquals(1, voucherRepository.count());
-    }
-
-    @Test
-    void testDeleteVoucher() {
-        Voucher voucher = vouchers.getFirst();
-        Voucher retCreate = voucherRepository.create(voucher);
-        Voucher retDel = voucherRepository.delete(voucher);
-
-        assertNotNull(retDel);
-        assertEquals(0, voucherRepository.count());
-    }
-
-    @Test
-    void testDeleteVoucherNotFound() {
-        Voucher voucher1 = vouchers.getFirst();
-        Voucher voucher2 = vouchers.get(1);
-        Voucher retCreate = voucherRepository.create(voucher1);
-        Voucher retDel = voucherRepository.delete(voucher2);
-
-        assertNull(retDel);
         assertEquals(1, voucherRepository.count());
     }
 
     @Test
     void testFindByCode() {
         Voucher voucher = vouchers.getFirst();
-        Voucher retCreate = voucherRepository.create(voucher);
-        Voucher result = voucherRepository.findByCode(voucher.getCode());
-
-        assertNotNull(result);
-        assertEquals(voucher.getCode(), result.getCode());
-        assertEquals(voucher.getDiscount(), result.getDiscount());
-        assertEquals(voucher.getTermsConditions(), result.getTermsConditions());
+        entityManager.persist(voucher);
+        Optional<Voucher> retrieved = voucherRepository.findById(voucher.getCode());
+        assertThat(retrieved).contains(voucher);
     }
 
     @Test
-    void testFindByCodeNotFound() {
-        Voucher voucher1 = vouchers.getFirst();
-        Voucher voucher2 = vouchers.get(1);
-        Voucher retCreate = voucherRepository.create(voucher1);
-        Voucher result = voucherRepository.findByCode(voucher2.getCode());
-
-        assertNull(result);
-    }
-
-    @Test
-    void testFindAll() {
-        for (Voucher voucher : vouchers) {
-            voucherRepository.create(voucher);
-        }
-
-        List<Voucher> allVouchers = voucherRepository.findAll();
-        assertEquals(vouchers, allVouchers);
+    void testDeleteVoucher() {
+        Voucher voucher = vouchers.getFirst();
+        entityManager.persist(voucher);
+        voucherRepository.delete(voucher);
+        assertThat(entityManager.find(Voucher.class, voucher.getCode())).isNull();
     }
 }
