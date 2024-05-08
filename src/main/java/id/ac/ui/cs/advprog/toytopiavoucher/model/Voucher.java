@@ -39,11 +39,32 @@ public class Voucher {
     }
 
     public Voucher(Double discount, Double maxDiscount, Double minPurchase, PaymentMethod paymentMethod, LocalDate creationDate, LocalDate expiryDate) {
+        if (discount == null || paymentMethod == null || creationDate == null) {
+            throw new IllegalArgumentException();
+        }
+        if (discount <= 0.0 || discount > 1.0) {
+            throw new IllegalArgumentException();
+        }
+        if (maxDiscount < 0.0 || minPurchase < 0.0) {
+            throw new IllegalArgumentException();
+        }
+        if (expiryDate != null && (expiryDate.isBefore(creationDate))) {
+            throw new IllegalArgumentException();
+        }
         this.discount = discount;
         this.maxDiscount = maxDiscount;
         this.minPurchase = minPurchase;
         this.paymentMethod = paymentMethod;
         this.creationDate = creationDate;
         this.expiryDate = expiryDate;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Voucher v)) {
+            return false;
+        } else {
+            return this.code.equals(v.code);
+        }
     }
 }
