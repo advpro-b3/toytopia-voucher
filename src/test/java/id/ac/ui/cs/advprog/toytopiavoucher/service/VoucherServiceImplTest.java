@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -96,7 +97,7 @@ public class VoucherServiceImplTest {
         doReturn(Optional.of(voucher)).when(voucherRepository).findById(voucher.getCode());
 
         Voucher deleted = voucherService.delete(voucher);
-        verify(voucherRepository, times(1)).delete(any(Voucher.class));
+        verify(voucherRepository, times(1)).delete(voucher);
         assertEquals(voucher.getDiscount(), deleted.getDiscount());
     }
 
@@ -110,6 +111,25 @@ public class VoucherServiceImplTest {
         assertNull(deleted);
     }
 
+    @Test
+    void testDeleteVoucherByCode() {
+        Voucher voucher = vouchers.getFirst();
+        doReturn(Optional.of(voucher)).when(voucherRepository).findById(voucher.getCode());
+
+        Voucher deleted = voucherService.deleteByCode(voucher.getCode());
+        verify(voucherRepository, times(1)).deleteById(voucher.getCode());
+        assertEquals(voucher.getDiscount(), deleted.getDiscount());
+    }
+
+    @Test
+    void testDeleteNonExistentCode() {
+        Voucher voucher = vouchers.getFirst();
+        doReturn(Optional.empty()).when(voucherRepository).findById(voucher.getCode());
+
+        Voucher deleted = voucherService.deleteByCode(voucher.getCode());
+        verify(voucherRepository, times(0)).deleteById(any(UUID.class));
+        assertNull(deleted);
+    }
     @Test
     void testFindByCode() {
         Voucher voucher = vouchers.getFirst();
