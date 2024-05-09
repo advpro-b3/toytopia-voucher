@@ -42,20 +42,39 @@ public class Voucher {
         if (discount == null || paymentMethod == null || creationDate == null) {
             throw new IllegalArgumentException();
         }
-        if (discount <= 0.0 || discount > 1.0) {
-            throw new IllegalArgumentException();
-        }
-        if (maxDiscount < 0.0 || minPurchase < 0.0) {
-            throw new IllegalArgumentException();
-        }
-        if (expiryDate != null && (expiryDate.isBefore(creationDate))) {
+        setDiscount(discount);
+        setMaxDiscount(maxDiscount);
+        setMinPurchase(minPurchase);
+        this.paymentMethod = paymentMethod;
+        this.creationDate = creationDate;
+        setExpiryDate(expiryDate);
+    }
+
+    public void setDiscount(Double discount) {
+        if (discount == null || discount <= 0.0 || discount > 1.0) {
             throw new IllegalArgumentException();
         }
         this.discount = discount;
+    }
+
+    public void setMaxDiscount(Double maxDiscount) {
+        if (maxDiscount < 0.0) {
+            throw new IllegalArgumentException();
+        }
         this.maxDiscount = maxDiscount;
+    }
+
+    public void setMinPurchase(Double minPurchase) {
+        if (minPurchase < 0.0) {
+            throw new IllegalArgumentException();
+        }
         this.minPurchase = minPurchase;
-        this.paymentMethod = paymentMethod;
-        this.creationDate = creationDate;
+    }
+
+    public void setExpiryDate(LocalDate expiryDate) {
+        if (expiryDate != null && (expiryDate.isBefore(creationDate))) {
+            throw new IllegalArgumentException();
+        }
         this.expiryDate = expiryDate;
     }
 

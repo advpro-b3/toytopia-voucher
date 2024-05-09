@@ -13,10 +13,6 @@ import java.util.UUID;
 public class VoucherBuilder {
     private Voucher voucher;
 
-    public VoucherBuilder(Voucher voucher) {
-        this.voucher = voucher;
-    }
-
     public VoucherBuilder() {
         this.reset();
     }
@@ -46,7 +42,15 @@ public class VoucherBuilder {
     }
 
     public VoucherBuilder setPaymentMethod(String paymentMethod) {
+        if (!PaymentMethod.contains(paymentMethod)) {
+            throw new IllegalArgumentException();
+        }
         this.voucher.setPaymentMethod(PaymentMethod.fromString(paymentMethod));
+        return this;
+    }
+
+    public VoucherBuilder setCreationDate(LocalDate creationDate) {
+        this.voucher.setCreationDate(creationDate);
         return this;
     }
 
@@ -57,9 +61,10 @@ public class VoucherBuilder {
 
     public Voucher build() {
         if (this.voucher.getDiscount() == null) {
-            throw new IllegalArgumentException();
+            throw new IllegalStateException();
         }
+        Voucher res = this.voucher;
         this.reset();
-        return this.voucher;
+        return res;
     }
 }

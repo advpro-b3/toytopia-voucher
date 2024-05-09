@@ -21,6 +21,14 @@ public enum PaymentMethod {
         return null;
     }
 
+    public static boolean contains(String test) {
+        for (PaymentMethod pm : PaymentMethod.values()) {
+            if (pm.name().equals(test)) {
+                return true;
+            }
+        }
+        return false;
+    }
     @Override
     public String toString() {
         return value;
