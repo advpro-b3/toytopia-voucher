@@ -7,11 +7,13 @@ import org.junit.jupiter.api.Test;
 
 import java.awt.dnd.InvalidDnDOperationException;
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class VoucherBuilderTest {
     private VoucherBuilder builder;
+    private UUID code;
     private double discount;
     private Double maxDiscount;
     private Double minPurchase;
@@ -22,6 +24,7 @@ public class VoucherBuilderTest {
     @BeforeEach
     void setUp() {
         builder = new VoucherBuilder();
+        code = UUID.randomUUID();
         discount = 0.5;
         maxDiscount = 50_000.0;
         minPurchase = 100_000.0;
@@ -33,8 +36,15 @@ public class VoucherBuilderTest {
     }
 
     @Test
+    void testCode() {
+        builder.setCode(code);
+        Voucher v = builder.build();
+        assertEquals(code, v.getCode());
+    }
+
+    @Test
     void testNoDiscount() {
-        builder.setDiscount(null);
+        builder = new VoucherBuilder();
         assertThrows(IllegalStateException.class,
                 () -> builder.build());
     }
@@ -127,7 +137,7 @@ public class VoucherBuilderTest {
     @Test
     void testNoExpiryDate() {
         Voucher v = builder.build();
-        assertNull(expiryDate);
+        assertNull(v.getExpiryDate());
     }
 
     @Test
