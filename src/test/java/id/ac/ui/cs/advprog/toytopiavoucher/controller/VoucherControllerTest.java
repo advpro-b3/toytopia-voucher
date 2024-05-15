@@ -1,6 +1,8 @@
 package id.ac.ui.cs.advprog.toytopiavoucher.controller;
 
 import com.jayway.jsonpath.JsonPath;
+import id.ac.ui.cs.advprog.toytopiavoucher.enums.PaymentMethod;
+import id.ac.ui.cs.advprog.toytopiavoucher.model.Voucher;
 import id.ac.ui.cs.advprog.toytopiavoucher.service.VoucherService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,10 +21,14 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.*;
 
 @WebMvcTest(VoucherController.class)
 @ActiveProfiles("test")
@@ -31,13 +37,23 @@ public class VoucherControllerTest {
     private MockMvc mockMvc;
     @MockBean
     private VoucherService service;
+    private Voucher voucher;
     private UUID code;
     private String json;
-    private String expiryDate;
+    private LocalDate expiryDate;
+    private DateTimeFormatter formatter;
 
     @BeforeEach
     void setUp() throws Exception {
-        expiryDate = LocalDate.now().plusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        expiryDate = LocalDate.now().plusMonths(1);
+        voucher = new Voucher();
+        code = UUID.randomUUID();
+        voucher.setCode(code);
+        voucher.setDiscount(0.3);
+        voucher.setMinPurchase(150000.0);
+        voucher.setExpiryDate(LocalDate.now().plusMonths(1));
+        voucher.setPaymentMethod(PaymentMethod.CREDIT_CARD);
         json = """
                 {
                     "discount": 0.3,
@@ -45,24 +61,12 @@ public class VoucherControllerTest {
                     "expiryDate": "%s",
                     "paymentMethod": "CREDIT_CARD"
                 }""";
-        json = String.format(json, expiryDate);
-        MockHttpServletRequestBuilder requestBuilder = post("/voucher/create")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(json);
-
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-        String response = result.getResponse().getContentAsString();
-        code = UUID.fromString(JsonPath.parse(response).read("$.code"));
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        this.mockMvc.perform(delete("/voucher/deleteAll"));
+        json = String.format(json, expiryDate.format(formatter));
     }
 
     @Test
     void shouldReturnOneVoucher() throws Exception {
+        when(service.findAll()).thenReturn(Collections.singletonList(voucher));
         this.mockMvc.perform(get("/voucher/all"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
@@ -71,6 +75,7 @@ public class VoucherControllerTest {
 
     @Test
     void shouldReturnSelectedVoucher() throws Exception {
+        when(service.findByCode(code)).thenReturn(voucher);
         this.mockMvc.perform(get(String.format("/voucher/%s", code)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(code.toString()));
@@ -78,12 +83,14 @@ public class VoucherControllerTest {
 
     @Test
     void shouldReturnNotFoundIfVoucherNotExist() throws Exception {
+        when(service.findByCode(any(UUID.class))).thenReturn(null);
         this.mockMvc.perform(get(String.format("/voucher/%s", UUID.randomUUID())))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void shouldReturnNewVoucher() throws Exception {
+        when(service.create(any(Voucher.class))).thenReturn(voucher);
         MockHttpServletRequestBuilder requestBuilder = post("/voucher/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
@@ -94,12 +101,18 @@ public class VoucherControllerTest {
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.discount").value(0.3))
                 .andExpect(jsonPath("$.creationDate").value(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
-                .andExpect(jsonPath("$.expiryDate").value(expiryDate));
+                .andExpect(jsonPath("$.expiryDate").value(expiryDate.format(formatter)));
     }
 
 
     @Test
     void shouldReturnEditedVoucher() throws Exception {
+        when(service.findByCode(code)).thenReturn(voucher);
+        voucher.setDiscount(0.5);
+        voucher.setMinPurchase(100000.0);
+        voucher.setPaymentMethod(PaymentMethod.BANK_TRANSFER);
+        voucher.setExpiryDate(null);
+        when(service.create(any(Voucher.class))).thenReturn(voucher);
         String jsonEdit = """
                 {
                     "code": "%s",
@@ -111,7 +124,6 @@ public class VoucherControllerTest {
                     "expiryDate": null
                 }""";
         jsonEdit = String.format(jsonEdit, code, LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-
 
         MockHttpServletRequestBuilder requestBuilder = put("/voucher/edit")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -241,6 +253,7 @@ public class VoucherControllerTest {
 
     @Test
     void shouldReturnDeletedVoucher() throws Exception {
+        when(service.deleteByCode(code)).thenReturn(voucher);
         this.mockMvc.perform(delete(String.format("/voucher/delete/%s", code)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(code.toString()));
@@ -248,6 +261,7 @@ public class VoucherControllerTest {
 
     @Test
     void shouldReturnAllDeletedVouchers() throws Exception {
+        when(service.findAll()).thenReturn(Collections.singletonList(voucher));
         this.mockMvc.perform(delete("/voucher/deleteAll"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
