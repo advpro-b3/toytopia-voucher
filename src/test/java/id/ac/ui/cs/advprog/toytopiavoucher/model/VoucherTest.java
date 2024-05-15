@@ -4,12 +4,15 @@ import id.ac.ui.cs.advprog.toytopiavoucher.enums.PaymentMethod;
 import jakarta.persistence.Column;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ActiveProfiles("test")
 public class VoucherTest {
     private UUID code;
     private double discount;

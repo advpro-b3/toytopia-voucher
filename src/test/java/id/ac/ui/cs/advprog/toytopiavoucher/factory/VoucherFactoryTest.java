@@ -5,12 +5,15 @@ import id.ac.ui.cs.advprog.toytopiavoucher.enums.PaymentMethod;
 import id.ac.ui.cs.advprog.toytopiavoucher.model.Voucher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ActiveProfiles("test")
 public class VoucherFactoryTest {
     private VoucherFactory voucherFactory;
     private VoucherDTO voucherDTO;
