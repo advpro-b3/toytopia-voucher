@@ -42,6 +42,9 @@ public class VoucherBuilder {
     }
 
     public VoucherBuilder setPaymentMethod(String paymentMethod) {
+        if (paymentMethod == null) {
+            paymentMethod = "ANY";
+        }
         if (!PaymentMethod.contains(paymentMethod)) {
             throw new IllegalArgumentException();
         }
