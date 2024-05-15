@@ -10,6 +10,7 @@ public interface VoucherService {
     Voucher edit(Voucher voucher);
     Voucher delete(Voucher voucher);
     Voucher deleteByCode(UUID code);
+    void deleteAll();
     Voucher findByCode(UUID code);
     List<Voucher> findAll();
 }

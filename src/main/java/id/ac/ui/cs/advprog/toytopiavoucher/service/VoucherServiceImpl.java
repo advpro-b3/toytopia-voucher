@@ -20,9 +20,6 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public Voucher create(Voucher voucher) {
-        if (voucherRepository.existsById(voucher.getCode())) {
-            return null;
-        }
         return voucherRepository.save(voucher);
     }
 
@@ -49,6 +46,11 @@ public class VoucherServiceImpl implements VoucherService {
             return found.get();
         }
         return null;
+    }
+
+    @Override
+    public void deleteAll() {
+        voucherRepository.deleteAll();
     }
 
     @Override
