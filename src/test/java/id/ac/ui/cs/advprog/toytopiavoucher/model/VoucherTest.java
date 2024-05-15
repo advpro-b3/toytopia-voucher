@@ -51,13 +51,66 @@ public class VoucherTest {
     }
 
     @Test
-    void testCreateInvalidDiscount() {
+    void testCreateNullDiscount() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new Voucher(null, maxDiscount, minPurchase, paymentMethod, creationDate, expiryDate));
+    }
+
+    @Test
+    void testCreateZeroDiscount() {
         assertThrows(IllegalArgumentException.class,
                 () -> new Voucher(0.0, maxDiscount, minPurchase, paymentMethod, creationDate, expiryDate));
+    }
+
+    @Test
+    void testCreateLessThanZeroDiscount() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new Voucher(-0.5, maxDiscount, minPurchase, paymentMethod, creationDate, expiryDate));
+    }
+
+    @Test
+    void testCreateMoreThanOneDiscount() {
         assertThrows(IllegalArgumentException.class,
                 () -> new Voucher(1.1, maxDiscount, minPurchase, paymentMethod, creationDate, expiryDate));
-        assertThrows(IllegalArgumentException.class,
-                () -> new Voucher(-1.0, maxDiscount, minPurchase, paymentMethod, creationDate, expiryDate));
+    }
+
+    @Test
+    public void testSetDiscountNullDiscount() {
+        Voucher voucher = new Voucher();
+        assertThrows(IllegalArgumentException.class, () -> {
+            voucher.setDiscount(null);
+        });
+    }
+
+    @Test
+    public void testSetDiscountZeroDiscount() {
+        Voucher voucher = new Voucher();
+        assertThrows(IllegalArgumentException.class, () -> {
+            voucher.setDiscount(0.0);
+        });
+    }
+
+    @Test
+    public void testSetDiscountNegativeDiscount() {
+        Voucher voucher = new Voucher();
+        assertThrows(IllegalArgumentException.class, () -> {
+            voucher.setDiscount(-0.5);
+        });
+    }
+
+    @Test
+    public void testSetDiscountDiscountGreaterThanOne() {
+        Voucher voucher = new Voucher();
+        assertThrows(IllegalArgumentException.class, () -> {
+            voucher.setDiscount(1.1);
+        });
+    }
+
+    @Test
+    public void testSetDiscountValidDiscount() {
+        Voucher voucher = new Voucher();
+        voucher.setDiscount(0.5);
+        assertEquals(0.5, voucher.getDiscount());
     }
 
     @Test
@@ -70,6 +123,12 @@ public class VoucherTest {
     void testInvalidMinPurchase() {
         assertThrows(IllegalArgumentException.class,
                 () -> new Voucher(discount, maxDiscount, -1.0, paymentMethod, creationDate, expiryDate));
+    }
+
+    @Test
+    void testNullMinPurchase() {
+        Voucher v = new Voucher(discount, maxDiscount, null, paymentMethod, creationDate, expiryDate);
+        assertNull(v.getMinPurchase());
     }
 
     @Test
@@ -87,5 +146,20 @@ public class VoucherTest {
                 () -> new Voucher(discount, maxDiscount, minPurchase, null, creationDate, expiryDate));
         assertThrows(IllegalArgumentException.class,
                 () -> new Voucher(discount, maxDiscount, minPurchase, paymentMethod, null, expiryDate));
+    }
+
+    @Test
+    void testEquals() {
+        Voucher v1 = new Voucher(0.5, maxDiscount, minPurchase, paymentMethod, creationDate, expiryDate);
+        Voucher v2 = new Voucher(0.4, maxDiscount, minPurchase, paymentMethod, creationDate, expiryDate);
+        v1.setCode(code);
+        v2.setCode(code);
+        assertEquals(v1, v2);
+    }
+
+    @Test
+    void testNotEquals() {
+        Voucher v = new Voucher(0.5, maxDiscount, minPurchase, paymentMethod, creationDate, expiryDate);
+        assertNotEquals(v, new Object());
     }
 }
