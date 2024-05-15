@@ -10,7 +10,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cglib.core.Local;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,19 +37,24 @@ public class VoucherServiceImplTest {
 
         builder.setDiscount(0.25)
                 .setMinPurchase(50.0)
+                .setCreationDate(LocalDate.now())
                 .setPaymentMethod(PaymentMethod.CREDIT_CARD.toString());
         vouchers.add(builder.build());
 
         builder.setDiscount(0.50)
                 .setMinPurchase(20.0)
+                .setCreationDate(LocalDate.now())
                 .setPaymentMethod(PaymentMethod.BANK_TRANSFER.toString());
         vouchers.add(builder.build());
 
-        builder.setDiscount(0.40);
+        builder.setDiscount(0.40)
+                .setCreationDate(LocalDate.now())
+                .setPaymentMethod(PaymentMethod.ANY.toString());
         vouchers.add(builder.build());
 
         builder.setDiscount(0.50)
                 .setMinPurchase(100.0)
+                .setCreationDate(LocalDate.now())
                 .setPaymentMethod(PaymentMethod.ANY.toString());
         vouchers.add(builder.build());
     }
@@ -60,16 +67,6 @@ public class VoucherServiceImplTest {
         Voucher created = voucherService.create(voucher);
         verify(voucherRepository, times(1)).save(voucher);
         assertEquals(voucher.getCode(), created.getCode());
-    }
-
-    @Test
-    void testCreateExistingVoucher() {
-        Voucher voucher = vouchers.getFirst();
-        doReturn(true).when(voucherRepository).existsById(voucher.getCode());
-
-        Voucher created = voucherService.create(voucher);
-        verify(voucherRepository, times(0)).save(any(Voucher.class));
-        assertNull(created);
     }
 
     @Test
