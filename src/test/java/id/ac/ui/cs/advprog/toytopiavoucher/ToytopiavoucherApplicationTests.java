@@ -10,4 +10,8 @@ class ToytopiavoucherApplicationTests {
     void contextLoads() {
     }
 
+    @Test
+    void testMainMethod() {
+        ToytopiavoucherApplication.main(new String[] {});
+    }
 }
