@@ -9,10 +9,11 @@ import org.springframework.cglib.core.Local;
 import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Objects;
 import java.util.UUID;
 
-@Entity(name = "voucher")
-@Table(name = "voucher")
+@Entity(name = "VOUCHER")
+@Table(name = "VOUCHER")
 @Getter
 @Setter
 public class Voucher {
@@ -26,16 +27,16 @@ public class Voucher {
     private Double maxDiscount;
     @Column
     private Double minPurchase;
-    @Column(nullable = false)
+    @Column(columnDefinition = "smallint check (payment_method between 0 and 3) default 0")
     private PaymentMethod paymentMethod;
-    @Column
+    @Column(columnDefinition = "date default current_date")
     private LocalDate creationDate;
     @Column
     private LocalDate expiryDate;
 
     public Voucher() {
-        this.paymentMethod = PaymentMethod.ANY;
         this.creationDate = LocalDate.now();
+        this.paymentMethod = PaymentMethod.ANY;
     }
 
     public Voucher(Double discount, Double maxDiscount, Double minPurchase, PaymentMethod paymentMethod, LocalDate creationDate, LocalDate expiryDate) {
@@ -58,14 +59,14 @@ public class Voucher {
     }
 
     public void setMaxDiscount(Double maxDiscount) {
-        if (maxDiscount < 0.0) {
+        if (maxDiscount != null && maxDiscount < 0.0) {
             throw new IllegalArgumentException();
         }
         this.maxDiscount = maxDiscount;
     }
 
     public void setMinPurchase(Double minPurchase) {
-        if (minPurchase < 0.0) {
+        if (minPurchase != null && minPurchase < 0.0) {
             throw new IllegalArgumentException();
         }
         this.minPurchase = minPurchase;
@@ -76,6 +77,10 @@ public class Voucher {
             throw new IllegalArgumentException();
         }
         this.expiryDate = expiryDate;
+    }
+
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = Objects.requireNonNullElse(paymentMethod, PaymentMethod.ANY);
     }
 
     @Override
