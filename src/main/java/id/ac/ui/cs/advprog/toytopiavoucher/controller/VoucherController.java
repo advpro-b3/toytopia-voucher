@@ -24,11 +24,7 @@ public class VoucherController {
     @GetMapping("/all")
     public ResponseEntity<List<Voucher>> getAll() {
         List<Voucher> all = voucherService.findAll();
-        if (all != null) {
-            return ResponseEntity.ok(all);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(all);
     }
 
     @GetMapping("/{code}")
@@ -46,21 +42,19 @@ public class VoucherController {
         VoucherFactory factory = new VoucherFactory();
         Voucher voucher = factory.create(voucherDTO);
         Voucher created = voucherService.create(voucher);
-        if (created != null) {
-            return ResponseEntity.ok(created);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(created);
     }
 
     @PutMapping("/edit")
     public ResponseEntity<Voucher> edit(@RequestBody VoucherDTO voucherDTO) {
-        if (voucherDTO.getCode() == null) {
+        if (voucherDTO.getCode() == null
+                || voucherDTO.getDiscount() == null
+                || voucherDTO.getCreationDate() == null
+                || voucherDTO.getPaymentMethod() == null) {
             return ResponseEntity.badRequest().build();
         }
 
-        UUID code = UUID.fromString(voucherDTO.getCode());
-        Voucher found = voucherService.findByCode(code);
+        Voucher found = voucherService.findByCode(voucherDTO.getCode());
         if (found == null) {
             return ResponseEntity.badRequest().build();
         }
@@ -79,5 +73,12 @@ public class VoucherController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @DeleteMapping("/deleteAll")
+    public ResponseEntity<List<Voucher>> deleteAll() {
+        List<Voucher> allVouchers = voucherService.findAll();
+        voucherService.deleteAll();
+        return ResponseEntity.ok(allVouchers);
     }
 }
