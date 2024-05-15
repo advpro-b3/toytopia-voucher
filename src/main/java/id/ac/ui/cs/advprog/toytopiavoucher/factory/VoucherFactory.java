@@ -10,22 +10,12 @@ import java.util.UUID;
 public class VoucherFactory {
     public Voucher create(VoucherDTO voucherDTO) {
         VoucherBuilder voucherBuilder = new VoucherBuilder();
-        UUID code;
-        if (voucherDTO.getCode() != null) {
-            code = UUID.fromString(voucherDTO.getCode());
-        } else {
-            code = null;
-        }
-        voucherBuilder.setCode(code)
+        voucherBuilder.setCode(voucherDTO.getCode())
                 .setDiscount(voucherDTO.getDiscount())
                 .setMaxDiscount(voucherDTO.getMaxDiscount())
                 .setMinPurchase(voucherDTO.getMinPurchase())
-                .setExpiryDate(voucherDTO.getExpiryDate());
-
-        if (voucherDTO.getPaymentMethod() != null) {
-            voucherBuilder.setPaymentMethod(voucherDTO.getPaymentMethod());
-        }
-
+                .setExpiryDate(voucherDTO.getExpiryDate())
+                .setPaymentMethod(voucherDTO.getPaymentMethod());
         return voucherBuilder.build();
     }
 }
