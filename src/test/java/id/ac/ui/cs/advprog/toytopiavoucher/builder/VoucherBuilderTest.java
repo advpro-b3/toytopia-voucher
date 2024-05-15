@@ -33,6 +33,8 @@ public class VoucherBuilderTest {
         expiryDate = creationDate.plusMonths(1);
 
         builder.setDiscount(discount);
+        builder.setCreationDate(LocalDate.now());
+        builder.setPaymentMethod(PaymentMethod.ANY.toString());
     }
 
     @Test
@@ -116,15 +118,16 @@ public class VoucherBuilderTest {
     }
 
     @Test
-    void testInvalidPaymentMethod() {
-        assertThrows(IllegalArgumentException.class,
-                () -> builder.setPaymentMethod("SKIBIDI_TOILET_RIZZ"));
+    void testNullPaymentMethod() {
+        builder.setPaymentMethod(null);
+        Voucher v = builder.build();
+        assertEquals(PaymentMethod.ANY, v.getPaymentMethod());
     }
 
     @Test
-    void testNoCreationDate() {
-        Voucher v = builder.build();
-        assertNotNull(v.getCreationDate());
+    void testInvalidPaymentMethod() {
+        assertThrows(IllegalArgumentException.class,
+                () -> builder.setPaymentMethod("SKIBIDI_TOILET_RIZZ"));
     }
 
     @Test
@@ -142,6 +145,7 @@ public class VoucherBuilderTest {
 
     @Test
     void testExpiryDate() {
+        builder.setCreationDate(creationDate);
         builder.setExpiryDate(expiryDate);
         Voucher v = builder.build();
         assertEquals(expiryDate, v.getExpiryDate());
