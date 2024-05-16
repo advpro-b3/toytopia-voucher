@@ -3,11 +3,13 @@ package id.ac.ui.cs.advprog.toytopiavoucher.service;
 import id.ac.ui.cs.advprog.toytopiavoucher.model.Voucher;
 import id.ac.ui.cs.advprog.toytopiavoucher.repository.VoucherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class VoucherServiceImpl implements VoucherService {
@@ -54,12 +56,13 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
-    public Voucher findByCode(UUID code) {
-        return voucherRepository.findById(code).orElse(null);
+    public CompletableFuture<Voucher> findByCode(UUID code) {
+        return CompletableFuture.completedFuture(voucherRepository.findById(code).orElse(null));
     }
 
     @Override
-    public List<Voucher> findAll() {
-        return voucherRepository.findAll();
+    @Async
+    public CompletableFuture<List<Voucher>> findAll() {
+        return CompletableFuture.completedFuture(voucherRepository.findAll());
     }
 }

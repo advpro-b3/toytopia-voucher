@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/voucher")
@@ -22,19 +24,19 @@ public class VoucherController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<Voucher>> getAll() {
-        List<Voucher> all = voucherService.findAll();
-        return ResponseEntity.ok(all);
+    public CompletableFuture<ResponseEntity<List<Voucher>>> getAll() throws Exception {
+        return voucherService.findAll().thenApply(ResponseEntity::ok);
     }
 
     @GetMapping("/{code}")
-    public ResponseEntity<Voucher> getByCode(@PathVariable(name = "code") UUID code) {
-        Voucher voucher = voucherService.findByCode(code);
-        if (voucher != null) {
-            return ResponseEntity.ok(voucher);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public CompletableFuture<ResponseEntity<Voucher>> getByCode(@PathVariable(name = "code") UUID code) {
+        return voucherService.findByCode(code).thenApply((result) -> {
+            if (result != null) {
+                return ResponseEntity.ok(result);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        });
     }
 
     @PostMapping("/create")
@@ -54,15 +56,16 @@ public class VoucherController {
             return ResponseEntity.badRequest().build();
         }
 
-        Voucher found = voucherService.findByCode(voucherDTO.getCode());
-        if (found == null) {
-            return ResponseEntity.badRequest().build();
-        }
-
+        CompletableFuture<Boolean> found = voucherService.findByCode(voucherDTO.getCode()).thenApply(Objects::nonNull);
         VoucherFactory factory = new VoucherFactory();
         Voucher voucher = factory.create(voucherDTO);
-        Voucher created = voucherService.create(voucher);
-        return ResponseEntity.ok(created);
+
+        if (found.join() != null) {
+            Voucher created = voucherService.create(voucher);
+            return ResponseEntity.ok(created);
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @DeleteMapping("/delete/{code}")
@@ -76,9 +79,10 @@ public class VoucherController {
     }
 
     @DeleteMapping("/deleteAll")
-    public ResponseEntity<List<Voucher>> deleteAll() {
-        List<Voucher> allVouchers = voucherService.findAll();
-        voucherService.deleteAll();
-        return ResponseEntity.ok(allVouchers);
+    public CompletableFuture<ResponseEntity<List<Voucher>>> deleteAll() {
+        return voucherService.findAll().thenApply((result) -> {
+            voucherService.deleteAll();
+            return ResponseEntity.ok(result);
+        });
     }
 }
