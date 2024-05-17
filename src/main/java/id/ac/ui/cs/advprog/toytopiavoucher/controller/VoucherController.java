@@ -60,7 +60,7 @@ public class VoucherController {
         VoucherFactory factory = new VoucherFactory();
         Voucher voucher = factory.create(voucherDTO);
 
-        if (found.join() != null) {
+        if (found.join()) {
             Voucher created = voucherService.create(voucher);
             return ResponseEntity.ok(created);
         } else {

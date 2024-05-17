@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -66,8 +67,13 @@ public class VoucherControllerTest {
 
     @Test
     void shouldReturnOneVoucher() throws Exception {
-        when(service.findAll()).thenReturn(Collections.singletonList(voucher));
-        this.mockMvc.perform(get("/voucher/all"))
+        when(service.findAll()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(voucher)));
+
+        MvcResult mvcResult = this.mockMvc.perform(get("/voucher/all"))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        this.mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].code").value(code.toString()));
@@ -75,16 +81,26 @@ public class VoucherControllerTest {
 
     @Test
     void shouldReturnSelectedVoucher() throws Exception {
-        when(service.findByCode(code)).thenReturn(voucher);
-        this.mockMvc.perform(get(String.format("/voucher/%s", code)))
+        when(service.findByCode(code)).thenReturn(CompletableFuture.completedFuture(voucher));
+
+        MvcResult mvcResult = this.mockMvc.perform(get(String.format("/voucher/%s", code)))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        this.mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(code.toString()));
     }
 
     @Test
     void shouldReturnNotFoundIfVoucherNotExist() throws Exception {
-        when(service.findByCode(any(UUID.class))).thenReturn(null);
-        this.mockMvc.perform(get(String.format("/voucher/%s", UUID.randomUUID())))
+        when(service.findByCode(any(UUID.class))).thenReturn(CompletableFuture.completedFuture(null));
+
+        MvcResult mvcResult = this.mockMvc.perform(get(String.format("/voucher/%s", UUID.randomUUID())))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        this.mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isNotFound());
     }
 
@@ -107,7 +123,7 @@ public class VoucherControllerTest {
 
     @Test
     void shouldReturnEditedVoucher() throws Exception {
-        when(service.findByCode(code)).thenReturn(voucher);
+        when(service.findByCode(code)).thenReturn(CompletableFuture.completedFuture(voucher));
         voucher.setDiscount(0.5);
         voucher.setMinPurchase(100000.0);
         voucher.setPaymentMethod(PaymentMethod.BANK_TRANSFER);
@@ -241,6 +257,7 @@ public class VoucherControllerTest {
                 }""";
         jsonEdit = String.format(jsonEdit, UUID.randomUUID(), LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 
+        when(service.findByCode(any(UUID.class))).thenReturn(CompletableFuture.completedFuture(null));
 
         MockHttpServletRequestBuilder requestBuilder = put("/voucher/edit")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -261,8 +278,11 @@ public class VoucherControllerTest {
 
     @Test
     void shouldReturnAllDeletedVouchers() throws Exception {
-        when(service.findAll()).thenReturn(Collections.singletonList(voucher));
-        this.mockMvc.perform(delete("/voucher/deleteAll"))
+        when(service.findAll()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(voucher)));
+        MvcResult mvcResult = this.mockMvc.perform(delete("/voucher/deleteAll"))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+        this.mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].code").value(code.toString()));

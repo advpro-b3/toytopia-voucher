@@ -135,7 +135,7 @@ public class VoucherServiceImplTest {
         Voucher voucher = vouchers.getFirst();
         doReturn(Optional.of(voucher)).when(voucherRepository).findById(voucher.getCode());
 
-        Voucher found = voucherService.findByCode(voucher.getCode());
+        Voucher found = voucherService.findByCode(voucher.getCode()).join();
         assertEquals(voucher.getCode(), found.getCode());
     }
 
@@ -144,14 +144,14 @@ public class VoucherServiceImplTest {
         Voucher voucher = vouchers.getFirst();
         doReturn(Optional.empty()).when(voucherRepository).findById(voucher.getCode());
 
-        Voucher found = voucherService.findByCode(voucher.getCode());
+        Voucher found = voucherService.findByCode(voucher.getCode()).join();
         assertNull(found);
     }
 
     @Test
     void testFindAll() {
         doReturn(vouchers).when(voucherRepository).findAll();
-        List<Voucher> all = voucherService.findAll();
+        List<Voucher> all = voucherService.findAll().join();
         assertEquals(vouchers, all);
     }
 }
