@@ -130,6 +130,13 @@ public class VoucherServiceImplTest {
         verify(voucherRepository, times(0)).deleteById(any(UUID.class));
         assertNull(deleted);
     }
+
+    @Test
+    void testDeleteAllVouchers() {
+        voucherService.deleteAll();
+        verify(voucherRepository, times(1)).deleteAll();
+    }
+
     @Test
     void testFindByCode() {
         Voucher voucher = vouchers.getFirst();
