@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.toytopiavoucher.service;
 
 import id.ac.ui.cs.advprog.toytopiavoucher.dto.UserResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -10,10 +11,10 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 public class UserServiceImpl implements UserService {
-    private final static String AUTH_API = "http://35.240.180.63:81/api";
+    @Value("${auth-api}")
+    private String AUTH_API;
 
-    @Override
-    public CompletableFuture<UserResponse> getUsernameWithToken(String token) {
+    private CompletableFuture<UserResponse> getUsernameWithToken(String token) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.set("Authorization", token);
