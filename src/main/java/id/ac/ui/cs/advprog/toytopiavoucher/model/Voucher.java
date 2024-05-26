@@ -88,4 +88,9 @@ public class Voucher {
             return this.code.equals(v.code);
         }
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(code);
+    }
 }
