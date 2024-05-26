@@ -3,10 +3,12 @@ package id.ac.ui.cs.advprog.toytopiavoucher.controller;
 import com.jayway.jsonpath.JsonPath;
 import id.ac.ui.cs.advprog.toytopiavoucher.enums.PaymentMethod;
 import id.ac.ui.cs.advprog.toytopiavoucher.model.Voucher;
+import id.ac.ui.cs.advprog.toytopiavoucher.service.UserService;
 import id.ac.ui.cs.advprog.toytopiavoucher.service.VoucherService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -32,17 +34,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.mockito.Mockito.*;
 
 @WebMvcTest(VoucherController.class)
-@ActiveProfiles("test")
 public class VoucherControllerTest {
     @Autowired
     private MockMvc mockMvc;
     @MockBean
-    private VoucherService service;
+    private VoucherService voucherService;
+    @MockBean
+    private UserService userService;
     private Voucher voucher;
     private UUID code;
     private String json;
     private LocalDate expiryDate;
     private DateTimeFormatter formatter;
+    private String token;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -63,11 +67,12 @@ public class VoucherControllerTest {
                     "paymentMethod": "CREDIT_CARD"
                 }""";
         json = String.format(json, expiryDate.format(formatter));
+        token = "Bearer eyu45320u";
     }
 
     @Test
     void shouldReturnOneVoucher() throws Exception {
-        when(service.findAll()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(voucher)));
+        when(voucherService.findAll()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(voucher)));
 
         MvcResult mvcResult = this.mockMvc.perform(get("/voucher/all"))
                 .andExpect(request().asyncStarted())
@@ -81,7 +86,7 @@ public class VoucherControllerTest {
 
     @Test
     void shouldReturnSelectedVoucher() throws Exception {
-        when(service.findByCode(code)).thenReturn(CompletableFuture.completedFuture(voucher));
+        when(voucherService.findByCode(code)).thenReturn(CompletableFuture.completedFuture(voucher));
 
         MvcResult mvcResult = this.mockMvc.perform(get(String.format("/voucher/%s", code)))
                 .andExpect(request().asyncStarted())
@@ -94,7 +99,7 @@ public class VoucherControllerTest {
 
     @Test
     void shouldReturnNotFoundIfVoucherNotExist() throws Exception {
-        when(service.findByCode(any(UUID.class))).thenReturn(CompletableFuture.completedFuture(null));
+        when(voucherService.findByCode(any(UUID.class))).thenReturn(CompletableFuture.completedFuture(null));
 
         MvcResult mvcResult = this.mockMvc.perform(get(String.format("/voucher/%s", UUID.randomUUID())))
                 .andExpect(request().asyncStarted())
@@ -106,13 +111,19 @@ public class VoucherControllerTest {
 
     @Test
     void shouldReturnNewVoucher() throws Exception {
-        when(service.create(any(Voucher.class))).thenReturn(voucher);
+        when(userService.isAdmin(token)).thenReturn(CompletableFuture.completedFuture(true));
+        when(voucherService.create(any(Voucher.class))).thenReturn(voucher);
         MockHttpServletRequestBuilder requestBuilder = post("/voucher/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", token)
                 .content(json);
 
-        this.mockMvc.perform(requestBuilder)
+        MvcResult mvcResult = this.mockMvc.perform(requestBuilder)
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        this.mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.discount").value(0.3))
@@ -123,12 +134,13 @@ public class VoucherControllerTest {
 
     @Test
     void shouldReturnEditedVoucher() throws Exception {
-        when(service.findByCode(code)).thenReturn(CompletableFuture.completedFuture(voucher));
+        when(userService.isAdmin(token)).thenReturn(CompletableFuture.completedFuture(true));
+        when(voucherService.findByCode(code)).thenReturn(CompletableFuture.completedFuture(voucher));
         voucher.setDiscount(0.5);
         voucher.setMinPurchase(100000.0);
         voucher.setPaymentMethod(PaymentMethod.BANK_TRANSFER);
         voucher.setExpiryDate(null);
-        when(service.create(any(Voucher.class))).thenReturn(voucher);
+        when(voucherService.create(any(Voucher.class))).thenReturn(voucher);
         String jsonEdit = """
                 {
                     "code": "%s",
@@ -144,9 +156,14 @@ public class VoucherControllerTest {
         MockHttpServletRequestBuilder requestBuilder = put("/voucher/edit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", token)
                 .content(jsonEdit);
 
-        this.mockMvc.perform(requestBuilder)
+        MvcResult mvcResult = this.mockMvc.perform(requestBuilder)
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        this.mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.discount").value(0.5))
                 .andExpect(jsonPath("$.minPurchase").value(100000.0))
@@ -257,7 +274,7 @@ public class VoucherControllerTest {
                 }""";
         jsonEdit = String.format(jsonEdit, UUID.randomUUID(), LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 
-        when(service.findByCode(any(UUID.class))).thenReturn(CompletableFuture.completedFuture(null));
+        when(voucherService.findByCode(any(UUID.class))).thenReturn(CompletableFuture.completedFuture(null));
 
         MockHttpServletRequestBuilder requestBuilder = put("/voucher/edit")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -270,16 +287,25 @@ public class VoucherControllerTest {
 
     @Test
     void shouldReturnDeletedVoucher() throws Exception {
-        when(service.deleteByCode(code)).thenReturn(voucher);
-        this.mockMvc.perform(delete(String.format("/voucher/delete/%s", code)))
+        when(userService.isAdmin(token)).thenReturn(CompletableFuture.completedFuture(true));
+        when(voucherService.deleteByCode(code)).thenReturn(voucher);
+
+        MvcResult mvcResult = this.mockMvc.perform(delete(String.format("/voucher/delete/%s", code))
+                        .header("Authorization", token))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        this.mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(code.toString()));
     }
 
     @Test
     void shouldReturnAllDeletedVouchers() throws Exception {
-        when(service.findAll()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(voucher)));
-        MvcResult mvcResult = this.mockMvc.perform(delete("/voucher/deleteAll"))
+        when(userService.isAdmin(token)).thenReturn(CompletableFuture.completedFuture(true));
+        when(voucherService.findAll()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(voucher)));
+        MvcResult mvcResult = this.mockMvc.perform(delete("/voucher/deleteAll")
+                        .header("Authorization", token))
                 .andExpect(request().asyncStarted())
                 .andReturn();
         this.mockMvc.perform(asyncDispatch(mvcResult))
@@ -290,7 +316,18 @@ public class VoucherControllerTest {
 
     @Test
     void shouldReturnNotFoundIfDeleteNotFound() throws Exception {
-        this.mockMvc.perform(delete(String.format("/voucher/delete/%s", UUID.randomUUID())))
+        when(userService.isAdmin(token)).thenReturn(CompletableFuture.completedFuture(true));
+        when(voucherService.deleteByCode(any(UUID.class))).thenReturn(null);
+        MockHttpServletRequestBuilder requestBuilder = delete(String.format("/voucher/delete/%s", UUID.randomUUID()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", token);
+
+        MvcResult mvcResult = this.mockMvc.perform(requestBuilder)
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        this.mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isNotFound());
     }
 }
