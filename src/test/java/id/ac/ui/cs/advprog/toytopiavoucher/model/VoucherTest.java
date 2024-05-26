@@ -1,11 +1,9 @@
 package id.ac.ui.cs.advprog.toytopiavoucher.model;
 
 import id.ac.ui.cs.advprog.toytopiavoucher.enums.PaymentMethod;
-import jakarta.persistence.Column;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -13,7 +11,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ActiveProfiles("test")
-public class VoucherTest {
+class VoucherTest {
     private UUID code;
     private double discount;
     private Double maxDiscount;
@@ -78,7 +76,7 @@ public class VoucherTest {
     }
 
     @Test
-    public void testSetDiscountNullDiscount() {
+    void testSetDiscountNullDiscount() {
         Voucher voucher = new Voucher();
         assertThrows(IllegalArgumentException.class, () -> {
             voucher.setDiscount(null);
@@ -86,7 +84,7 @@ public class VoucherTest {
     }
 
     @Test
-    public void testSetDiscountZeroDiscount() {
+    void testSetDiscountZeroDiscount() {
         Voucher voucher = new Voucher();
         assertThrows(IllegalArgumentException.class, () -> {
             voucher.setDiscount(0.0);
@@ -94,7 +92,7 @@ public class VoucherTest {
     }
 
     @Test
-    public void testSetDiscountNegativeDiscount() {
+    void testSetDiscountNegativeDiscount() {
         Voucher voucher = new Voucher();
         assertThrows(IllegalArgumentException.class, () -> {
             voucher.setDiscount(-0.5);
@@ -102,7 +100,7 @@ public class VoucherTest {
     }
 
     @Test
-    public void testSetDiscountDiscountGreaterThanOne() {
+    void testSetDiscountDiscountGreaterThanOne() {
         Voucher voucher = new Voucher();
         assertThrows(IllegalArgumentException.class, () -> {
             voucher.setDiscount(1.1);
@@ -110,7 +108,7 @@ public class VoucherTest {
     }
 
     @Test
-    public void testSetDiscountValidDiscount() {
+    void testSetDiscountValidDiscount() {
         Voucher voucher = new Voucher();
         voucher.setDiscount(0.5);
         assertEquals(0.5, voucher.getDiscount());

@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
-import java.awt.dnd.InvalidDnDOperationException;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -15,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @TestPropertySource(locations ="classpath:application-test.properties")
 @ActiveProfiles("test")
-public class VoucherBuilderTest {
+class VoucherBuilderTest {
     private VoucherBuilder builder;
     private UUID code;
     private double discount;

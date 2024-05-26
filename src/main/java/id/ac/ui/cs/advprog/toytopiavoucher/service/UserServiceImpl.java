@@ -33,6 +33,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public CompletableFuture<Boolean> isAdmin(String token) {
         CompletableFuture<UserResponse> userResponse = getUsernameWithToken(token);
-        return userResponse.thenApply((result) -> result.getRole().equals("ADMIN"));
+        return userResponse.thenApply(result -> result.getRole().equals("ADMIN"));
     }
 }

@@ -34,7 +34,7 @@ public class VoucherController {
 
     @GetMapping("/{code}")
     public CompletableFuture<ResponseEntity<Voucher>> getByCode(@PathVariable(name = "code") UUID code) {
-        return voucherService.findByCode(code).thenApply((result) -> {
+        return voucherService.findByCode(code).thenApply(result -> {
             if (result != null) {
                 return ResponseEntity.ok(result);
             } else {
@@ -80,7 +80,7 @@ public class VoucherController {
             } else if (Boolean.FALSE.equals(result)) {
                 return new ResponseEntity<>(HttpStatus.FORBIDDEN);
             }
-            if (found.join()) {
+            if (Boolean.TRUE.equals(found.join())) {
                 Voucher created = voucherService.create(voucher);
                 return ResponseEntity.ok(created);
             } else {

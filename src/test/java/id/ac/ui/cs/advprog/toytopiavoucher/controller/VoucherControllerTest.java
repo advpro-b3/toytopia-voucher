@@ -1,40 +1,33 @@
 package id.ac.ui.cs.advprog.toytopiavoucher.controller;
 
-import com.jayway.jsonpath.JsonPath;
 import id.ac.ui.cs.advprog.toytopiavoucher.enums.PaymentMethod;
 import id.ac.ui.cs.advprog.toytopiavoucher.model.Voucher;
 import id.ac.ui.cs.advprog.toytopiavoucher.service.UserService;
 import id.ac.ui.cs.advprog.toytopiavoucher.service.VoucherService;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.mockito.Mockito.*;
 
 @WebMvcTest(VoucherController.class)
-public class VoucherControllerTest {
+class VoucherControllerTest {
     @Autowired
     private MockMvc mockMvc;
     @MockBean
@@ -49,7 +42,7 @@ public class VoucherControllerTest {
     private String token;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         expiryDate = LocalDate.now().plusMonths(1);
         voucher = new Voucher();
@@ -131,7 +124,6 @@ public class VoucherControllerTest {
                 .andExpect(jsonPath("$.expiryDate").value(expiryDate.format(formatter)));
     }
 
-
     @Test
     void shouldReturnEditedVoucher() throws Exception {
         when(userService.isAdmin(token)).thenReturn(CompletableFuture.completedFuture(true));
@@ -170,20 +162,19 @@ public class VoucherControllerTest {
                 .andExpect(jsonPath("$.paymentMethod").value("BANK_TRANSFER"));
     }
 
-    @Test
-    void editShouldReturnBadRequestIfCodeNull() throws Exception {
+    void testEditInvalidPaths(String code, String discount, String paymentMethod, String creationDate) throws Exception {
         when(userService.isAdmin(token)).thenReturn(CompletableFuture.completedFuture(true));
         String jsonEdit = """
                 {
-                    "code": null,
-                    "discount": 0.5,
+                    "code": %s,
+                    "discount": %s,
                     "maxDiscount": null,
                     "minPurchase": 100000.0,
-                    "paymentMethod": "BANK_TRANSFER",
-                    "creationDate": "%s",
+                    "paymentMethod": %s,
+                    "creationDate": %s,
                     "expiryDate": null
                 }""";
-        jsonEdit = String.format(jsonEdit, LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        jsonEdit = String.format(jsonEdit, code, discount, paymentMethod, creationDate);
 
         MockHttpServletRequestBuilder requestBuilder = put("/voucher/edit")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -197,92 +188,46 @@ public class VoucherControllerTest {
 
         this.mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    void editShouldReturnBadRequestIfCodeNull() throws Exception {
+        testEditInvalidPaths(
+                null,
+                "\"0.5\"",
+                "\"BANK_TRANSFER\"",
+                "\"" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "\""
+                );
     }
 
     @Test
     void editShouldReturnBadRequestIfDiscountNull() throws Exception {
-        when(userService.isAdmin(token)).thenReturn(CompletableFuture.completedFuture(true));
-        String jsonEdit = """
-                {
-                    "code": "%s",
-                    "discount": null,
-                    "maxDiscount": null,
-                    "minPurchase": 100000.0,
-                    "paymentMethod": "BANK_TRANSFER",
-                    "creationDate": "%s",
-                    "expiryDate": null
-                }""";
-        jsonEdit = String.format(jsonEdit, code, LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-
-        MockHttpServletRequestBuilder requestBuilder = put("/voucher/edit")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .header("Authorization", token)
-                .content(jsonEdit);
-
-        MvcResult mvcResult = this.mockMvc.perform(requestBuilder)
-                .andExpect(request().asyncStarted())
-                .andReturn();
-
-        this.mockMvc.perform(asyncDispatch(mvcResult))
-                .andExpect(status().isBadRequest());
+        testEditInvalidPaths(
+                "\"" + code + "\"",
+                null,
+                "\"BANK_TRANSFER\"",
+                "\"" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "\""
+        );
     }
 
     @Test
     void editShouldReturnBadRequestIfCreationDateNull() throws Exception {
-        when(userService.isAdmin(token)).thenReturn(CompletableFuture.completedFuture(true));
-        String jsonEdit = """
-                {
-                    "code": "%s",
-                    "discount": 0.5,
-                    "maxDiscount": null,
-                    "minPurchase": 100000.0,
-                    "paymentMethod": "BANK_TRANSFER",
-                    "creationDate": null,
-                    "expiryDate": null
-                }""";
-        jsonEdit = String.format(jsonEdit, code, LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-
-        MockHttpServletRequestBuilder requestBuilder = put("/voucher/edit")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .header("Authorization", token)
-                .content(jsonEdit);
-
-        MvcResult mvcResult = this.mockMvc.perform(requestBuilder)
-                .andExpect(request().asyncStarted())
-                .andReturn();
-
-        this.mockMvc.perform(asyncDispatch(mvcResult))
-                .andExpect(status().isBadRequest());
+        testEditInvalidPaths(
+                "\"" + code + "\"",
+                "\"0.5\"",
+                "\"BANK_TRANSFER\"",
+                null
+        );
     }
     @Test
     void editShouldReturnBadRequestIfPaymentMethodNull() throws Exception {
-        when(userService.isAdmin(token)).thenReturn(CompletableFuture.completedFuture(true));
-        String jsonEdit = """
-                {
-                    "code": "%s",
-                    "discount": 0.5,
-                    "maxDiscount": null,
-                    "minPurchase": 100000.0,
-                    "paymentMethod": null,
-                    "creationDate": "%s",
-                    "expiryDate": null
-                }""";
-        jsonEdit = String.format(jsonEdit, code, LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-
-        MockHttpServletRequestBuilder requestBuilder = put("/voucher/edit")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .header("Authorization", token)
-                .content(jsonEdit);
-
-        MvcResult mvcResult = this.mockMvc.perform(requestBuilder)
-                .andExpect(request().asyncStarted())
-                .andReturn();
-
-        this.mockMvc.perform(asyncDispatch(mvcResult))
-                .andExpect(status().isBadRequest());
+        testEditInvalidPaths(
+                "\"" + code + "\"",
+                "\"0.5\"",
+                null,
+                "\"" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "\""
+        );
     }
     @Test
     void editShouldReturnBadRequestIfCodeNotFound() throws Exception {
