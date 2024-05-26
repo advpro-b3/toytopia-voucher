@@ -28,7 +28,7 @@ public class VoucherController {
     }
 
     @GetMapping("/all")
-    public CompletableFuture<ResponseEntity<List<Voucher>>> getAll() throws Exception {
+    public CompletableFuture<ResponseEntity<List<Voucher>>> getAll() {
         return voucherService.findAll().thenApply(ResponseEntity::ok);
     }
 
@@ -51,7 +51,7 @@ public class VoucherController {
         return isAdmin.handle((result, ex) -> {
             if (ex != null) {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            } else if (!result) {
+            } else if (Boolean.FALSE.equals(result)) {
                 return new ResponseEntity<>(HttpStatus.FORBIDDEN);
             }
             Voucher created = voucherService.create(voucher);
@@ -77,7 +77,7 @@ public class VoucherController {
         return isAdmin.handle((result, ex) -> {
             if (ex != null) {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            } else if (!result) {
+            } else if (Boolean.FALSE.equals(result)) {
                 return new ResponseEntity<>(HttpStatus.FORBIDDEN);
             }
             if (found.join()) {
@@ -95,7 +95,7 @@ public class VoucherController {
         return isAdmin.handle((result, ex) -> {
             if (ex != null) {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            } else if (!result) {
+            } else if (Boolean.FALSE.equals(result)) {
                 return new ResponseEntity<>(HttpStatus.FORBIDDEN);
             }
             Voucher deleted = voucherService.deleteByCode(code);
@@ -113,7 +113,7 @@ public class VoucherController {
         return isAdmin.handle((result, ex) -> {
             if (ex != null) {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            } else if (!result) {
+            } else if (Boolean.FALSE.equals(result)) {
                 return new ResponseEntity<>(HttpStatus.FORBIDDEN);
             }
             List<Voucher> deleted = voucherService.findAll().join();

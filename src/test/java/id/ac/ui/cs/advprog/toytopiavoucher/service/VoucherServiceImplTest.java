@@ -77,7 +77,7 @@ public class VoucherServiceImplTest {
         Voucher voucher = vouchers.getFirst();
         doReturn(voucher).when(voucherRepository).save(voucher);
 
-        Voucher edited = voucherService.edit(voucher);
+        voucherService.edit(voucher);
         verify(voucherRepository, times(1)).save(any(Voucher.class));
     }
 

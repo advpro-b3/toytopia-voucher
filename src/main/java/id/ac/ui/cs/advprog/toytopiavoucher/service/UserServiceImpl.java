@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class UserServiceImpl implements UserService {
     @Value("${auth-api}")
-    private String AUTH_API;
+    private String authApi;
 
     private CompletableFuture<UserResponse> getUsernameWithToken(String token) {
         RestTemplate restTemplate = new RestTemplate();
@@ -23,7 +23,7 @@ public class UserServiceImpl implements UserService {
 
         try {
             ResponseEntity<UserResponse> response = restTemplate.exchange(
-                    AUTH_API + "/user", HttpMethod.GET, httpEntity, UserResponse.class);
+                    authApi + "/user", HttpMethod.GET, httpEntity, UserResponse.class);
             return CompletableFuture.completedFuture(response.getBody());
         } catch (HttpClientErrorException e) {
             return CompletableFuture.failedFuture(e);
